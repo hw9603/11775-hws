@@ -1,4 +1,4 @@
-#!/bin/python 
+#!/bin/python
 
 import numpy
 import os
@@ -19,5 +19,14 @@ if __name__ == '__main__':
     mfcc_csv_file = sys.argv[1]; output_file = sys.argv[3]
     cluster_num = int(sys.argv[2])
 
+    fwrite = open(output_file, "wb")
+
+    array = numpy.genfromtxt(mfcc_csv_file, delimiter=";")
+
+    kmeans = KMeans(n_clusters=cluster_num)
+    kmeans.fit(array)
+
+    # save the model to the specified output file
+    cPickle.dump(kmeans, fwrite, -1)
 
     print "K-means trained successfully!"

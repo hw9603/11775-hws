@@ -18,7 +18,28 @@ if __name__ == '__main__':
     cluster_num = int(sys.argv[2])
 
     # load the kmeans model
-    kmeans = cPickle.load(open(kmeans_model,"rb"))
-    
+    kmeans = cPickle.load(open(kmeans_model, "rb"))
+
+    fread = open(file_list, "r")
+    for line in fread.readline():
+        mfcc_path = "mfcc/" + line.replace('\n', '') + ".mfcc.csv"
+        # output file
+        fwrite = open("kmeans/" + line.replace('\n', ''), "w")
+        # initialize the histogram with all zeros
+        hist = numpy.zeros(cluster_num)
+        # if there is no mfcc for the video
+        if os.path.exists(mfcc_path) == False:
+            for i in xrange(cluster_num):
+                hist[i] = 1.0 / cluster_num
+        else:
+            array = numpy.genfromtxt(mfcc_path, delimiter=";")
+            preds = kmeans.predict(array)
+            for p in preds:
+                # TODO: compare with unnormalized version
+                hist[p] += 1.0 / len(preds)
+        # write the histogram into the file
+        line = ";".join(hist)
+        fwrite.write(line + "\n")
+        fwrite.close()
 
     print "K-means features generated successfully!"
