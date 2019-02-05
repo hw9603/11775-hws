@@ -16,7 +16,7 @@ echo "#       MED with MFCC Features      #"
 echo "#####################################"
 mkdir -p mfcc_pred
 # iterate over the events
-feat_dim_mfcc=200
+feat_dim_mfcc=400
 for event in P001 P002 P003; do
   echo "=========  Event $event  ========="
   # now train a svm model
@@ -25,7 +25,7 @@ for event in P001 P002 P003; do
   # output the score of each testing video to a file ${event}_pred 
   python scripts/test_svm.py mfcc_pred/svm.$event.model "kmeans/" $feat_dim_mfcc mfcc_pred/${event}_mfcc.lst || exit 1;
   # compute the average precision by calling the mAP package
-  ap list/${event}_val_label mfcc_pred/${event}_mfcc.lst
+  ~/tools/mAP/ap list/${event}_val_label mfcc_pred/${event}_mfcc.lst
 done
 
 echo ""
@@ -34,7 +34,7 @@ echo "#       MED with ASR Features       #"
 echo "#####################################"
 mkdir -p asr_pred
 # iterate over the events
-feat_dim_asr=983
+feat_dim_asr=8654
 for event in P001 P002 P003; do
   echo "=========  Event $event  ========="
   # now train a svm model
@@ -43,6 +43,6 @@ for event in P001 P002 P003; do
   # output the score of each testing video to a file ${event}_pred 
   python scripts/test_svm.py asr_pred/svm.$event.model "asrfeat/" $feat_dim_asr asr_pred/${event}_asr.lst || exit 1;
   # compute the average precision by calling the mAP package
-  ap list/${event}_val_label asr_pred/${event}_asr.lst
+  ~/tools/mAP/ap list/${event}_val_label asr_pred/${event}_asr.lst
 done
 

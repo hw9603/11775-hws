@@ -21,7 +21,7 @@ if __name__ == '__main__':
     kmeans = cPickle.load(open(kmeans_model, "rb"))
 
     fread = open(file_list, "r")
-    for line in fread.readline():
+    for line in fread.readlines():
         mfcc_path = "mfcc/" + line.replace('\n', '') + ".mfcc.csv"
         # output file
         fwrite = open("kmeans/" + line.replace('\n', ''), "w")
@@ -32,13 +32,13 @@ if __name__ == '__main__':
             for i in xrange(cluster_num):
                 hist[i] = 1.0 / cluster_num
         else:
-            array = numpy.genfromtxt(mfcc_path, delimiter=";")
+            array = numpy.genfromtxt(mfcc_path, delimiter=";", dtype="float")
             preds = kmeans.predict(array)
             for p in preds:
                 # TODO: compare with unnormalized version
                 hist[p] += 1.0 / len(preds)
         # write the histogram into the file
-        line = ";".join(hist)
+        line = ";".join([str(x) for x in hist])
         fwrite.write(line + "\n")
         fwrite.close()
 

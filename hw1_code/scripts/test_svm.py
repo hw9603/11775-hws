@@ -22,3 +22,17 @@ if __name__ == '__main__':
     feat_dim = int(sys.argv[3])
     output_file = sys.argv[4]
 
+    clf = cPickle.load(open(model_file, "rb"))
+    # validation dataset
+    file_list = "list/val.video"
+    fread = open(file_list, "r")
+    fwrite = open(output_file, "wb")
+    videos = []
+    for line in fread.readlines():
+        file_name = line.replace('\n', '')
+        feature = numpy.genfromtxt(feat_dir + file_name, delimiter=";")
+        scores = clf.decision_function(feature.reshape(1, -1))
+        fwrite.write(str(scores[0]) + "\n")
+    fwrite.close()
+
+    print 'SVM tested successfully!'

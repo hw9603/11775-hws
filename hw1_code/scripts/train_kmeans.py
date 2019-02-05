@@ -2,9 +2,10 @@
 
 import numpy
 import os
-from sklearn.cluster.k_means_ import KMeans
+from sklearn.cluster.k_means_ import MiniBatchKMeans, KMeans
 import cPickle
 import sys
+import pandas
 
 # Performs K-means clustering and save the model to a local file
 
@@ -21,11 +22,17 @@ if __name__ == '__main__':
 
     fwrite = open(output_file, "wb")
 
-    array = numpy.genfromtxt(mfcc_csv_file, delimiter=";")
+    print "begin generate array"
+    # array = pandas.read_csv(mfcc_csv_file, sep=';', dtype='float')
+    array = numpy.genfromtxt(mfcc_csv_file, dtype=numpy.float64, delimiter=";")
 
-    kmeans = KMeans(n_clusters=cluster_num)
+    print "define kmeans"
+    kmeans = KMeans(n_clusters=cluster_num, n_jobs=2)
+
+    print "fit kmeans"
     kmeans.fit(array)
 
+    print "saving model"
     # save the model to the specified output file
     cPickle.dump(kmeans, fwrite, -1)
 
