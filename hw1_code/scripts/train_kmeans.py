@@ -23,11 +23,12 @@ if __name__ == '__main__':
     fwrite = open(output_file, "wb")
 
     print "begin generate array"
-    # array = pandas.read_csv(mfcc_csv_file, sep=';', dtype='float')
-    array = numpy.genfromtxt(mfcc_csv_file, dtype=numpy.float64, delimiter=";")
+    selection = pandas.read_csv(mfcc_csv_file, sep=';', dtype='float')
+    array = selection.values
+    # array = numpy.genfromtxt(mfcc_csv_file, dtype=numpy.float64, delimiter=";")
 
     print "define kmeans"
-    kmeans = KMeans(n_clusters=cluster_num, n_jobs=2)
+    kmeans = MiniBatchKMeans(n_clusters=cluster_num)
 
     print "fit kmeans"
     kmeans.fit(array)

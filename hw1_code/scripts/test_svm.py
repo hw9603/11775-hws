@@ -9,22 +9,29 @@ import sys
 # Apply the SVM model to the testing videos; Output the score for each video
 
 if __name__ == '__main__':
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print "Usage: {0} model_file feat_dir feat_dim output_file".format(sys.argv[0])
         print "model_file -- path of the trained svm file"
         print "feat_dir -- dir of feature files"
         print "feat_dim -- dim of features; provided just for debugging"
         print "output_file -- path to save the prediction score"
+        print ""
         exit(1)
 
     model_file = sys.argv[1]
     feat_dir = sys.argv[2]
     feat_dim = int(sys.argv[3])
     output_file = sys.argv[4]
+    predict_test = bool(int(sys.argv[5]))
 
     clf = cPickle.load(open(model_file, "rb"))
     # validation dataset
-    file_list = "list/val.video"
+    if predict_test == True:
+        print "predict on test.video"
+        file_list = "list/test.video"
+    else:
+        print "predict on val.video"
+        file_list = "list/val.video"
     fread = open(file_list, "r")
     fwrite = open(output_file, "wb")
     videos = []

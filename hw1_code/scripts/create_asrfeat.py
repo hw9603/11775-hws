@@ -26,7 +26,7 @@ if __name__ == '__main__':
     for line in fread.readlines():
         # for now, we just consider the text features
         # TODO: explore CTM file later
-        txt_path = "asr/" + line.replace('\n', '') + ".txt"
+        txt_path = "/home/ubuntu/asr/" + line.replace('\n', '') + ".txt"
         # output file
         fwrite = open("asrfeat/" + line.replace('\n', ''), "w")
         # initialize the histogram with all zeros
@@ -50,7 +50,7 @@ if __name__ == '__main__':
             # TODO: still, not sure if I need to normalize it
             if total != 0:
                 for i in xrange(len(vocab)):
-                    hist[i] /= len(total)
+                    hist[i] /= total
 
         # write the histogram into the file
         line = ";".join([str(x) for x in hist])

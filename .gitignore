@@ -3,4 +3,6 @@
 mfcc/
 audio/
 kmeans/
+asrfeat/
+*.model
 hw1_code/.idea/

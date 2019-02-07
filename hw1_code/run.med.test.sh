@@ -20,13 +20,17 @@ feat_dim_mfcc=400
 for event in P001 P002 P003; do
   echo "=========  Event $event  ========="
   # now train a svm model
-  python scripts/train_svm.py $event "kmeans/" $feat_dim_mfcc mfcc_pred/svm.$event.model || exit 1;
+  python scripts/train_svm.py $event "kmeans/" $feat_dim_mfcc mfcc_pred/svm.$event.model 1 || exit 1;
   # apply the svm model to *ALL* the testing videos;
   # output the score of each testing video to a file ${event}_pred 
-  python scripts/test_svm.py mfcc_pred/svm.$event.model "kmeans/" $feat_dim_mfcc mfcc_pred/${event}_mfcc.lst || exit 1;
-  # compute the average precision by calling the mAP package
-  ~/tools/mAP/ap list/${event}_val_label mfcc_pred/${event}_mfcc.lst
+  python scripts/test_svm.py mfcc_pred/svm.$event.model "kmeans/" $feat_dim_mfcc mfcc_pred/${event}_mfcc.lst 1 || exit 1;
 done
+
+echo ""
+echo "####################################"
+echo "#    Generate Prediction File      #"
+echo "####################################"
+python generate_class.py
 
 echo ""
 echo "#####################################"
@@ -34,15 +38,13 @@ echo "#       MED with ASR Features       #"
 echo "#####################################"
 mkdir -p asr_pred
 # iterate over the events
-feat_dim_asr=8654
+feat_dim_asr=8546
 for event in P001 P002 P003; do
   echo "=========  Event $event  ========="
   # now train a svm model
-  python scripts/train_svm.py $event "asrfeat/" $feat_dim_asr asr_pred/svm.$event.model || exit 1;
+  python scripts/train_svm.py $event "asrfeat/" $feat_dim_asr asr_pred/svm.$event.model 1 || exit 1;
   # apply the svm model to *ALL* the testing videos;
   # output the score of each testing video to a file ${event}_pred 
-  python scripts/test_svm.py asr_pred/svm.$event.model "asrfeat/" $feat_dim_asr asr_pred/${event}_asr.lst || exit 1;
-  # compute the average precision by calling the mAP package
-  ~/tools/mAP/ap list/${event}_val_label asr_pred/${event}_asr.lst
+  python scripts/test_svm.py asr_pred/svm.$event.model "asrfeat/" $feat_dim_asr asr_pred/${event}_asr.lst 1 || exit 1;
 done
 
