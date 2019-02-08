@@ -3,6 +3,7 @@
 import numpy
 import os
 from sklearn.svm.classes import SVC
+from sklearn.metrics.pairwise import chi2_kernel
 import cPickle
 import sys
 
@@ -34,11 +35,39 @@ if __name__ == '__main__':
         file_list = "list/val.video"
     fread = open(file_list, "r")
     fwrite = open(output_file, "wb")
+
+    """ for chi-squared kernel """
+    train_file_list = "list/train"
+    val_file_list = "list/val"
+    train_videos = []
+
+    train_file = open(train_file_list, "r")
+    for line in train_file.readlines():
+        file_name, event = line.replace('\n', '').split()
+        train_videos.append(file_name)
+    train_file.close()
+
+    if predict_test == True:
+        print "Also including validation file in training.\n"
+        train_file = open(val_file_list, "r")
+        for line in train_file.readlines():
+            file_name, event = line.replace('\n', '').split()
+            train_videos.append(file_name)
+        train_file.close()
+
+    train_feat = numpy.zeros([len(train_videos), feat_dim])
+    for i, video in enumerate(train_videos):
+        feature = numpy.genfromtxt(feat_dir + video, delimiter=";")
+        # the feature shape should be the same as feat_dim
+        if feature.shape[0] == feat_dim:
+            train_feat[i, :] = feature
+    """ end """
+
     videos = []
     for line in fread.readlines():
         file_name = line.replace('\n', '')
         feature = numpy.genfromtxt(feat_dir + file_name, delimiter=";")
-        scores = clf.decision_function(feature.reshape(1, -1))
+        scores = clf.decision_function(chi2_kernel(feature.reshape(1, -1), train_feat))
         fwrite.write(str(scores[0]) + "\n")
     fwrite.close()
 

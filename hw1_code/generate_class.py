@@ -1,12 +1,17 @@
 #!/bin/python
+import sys
 
 if __name__ == '__main__':
-    folder = "mfcc_pred/"
+    if len(sys.argv) != 3:
+        exit(1)
+
+    folder = sys.argv[1] # mfcc_pred/ or asr_pred/
+    feature_name = sys.argv[2]
     test_videos = open("../all_test.video", "r")
 
-    file1 = open(folder + "P001_mfcc.lst", "r")
-    file2 = open(folder + "P002_mfcc.lst", "r")
-    file3 = open(folder + "P003_mfcc.lst", "r")
+    file1 = open(folder + "P001_" + feature_name + ".lst", "r")
+    file2 = open(folder + "P002_" + feature_name + ".lst", "r")
+    file3 = open(folder + "P003_" + feature_name + ".lst", "r")
 
     score1 = []
     score2 = []

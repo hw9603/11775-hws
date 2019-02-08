@@ -3,6 +3,7 @@
 import numpy
 import os
 from sklearn.svm.classes import SVC
+from sklearn.metrics.pairwise import chi2_kernel
 import cPickle
 import sys
 
@@ -59,8 +60,8 @@ if __name__ == '__main__':
         if feature.shape[0] == feat_dim:
             X[i, :] = feature
 
-    clf = SVC(decision_function_shape='ovr')
-    clf.fit(X, y)
+    clf = SVC(decision_function_shape='ovr', kernel='precomputed', gamma='scale', C=1)
+    clf.fit(chi2_kernel(X), y)
     # dump the model to the output file
     cPickle.dump(clf, fwrite, -1)
 

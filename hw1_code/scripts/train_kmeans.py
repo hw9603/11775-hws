@@ -25,7 +25,7 @@ if __name__ == '__main__':
     print "begin generate array"
     selection = pandas.read_csv(mfcc_csv_file, sep=';', dtype='float')
     array = selection.values
-    # array = numpy.genfromtxt(mfcc_csv_file, dtype=numpy.float64, delimiter=";")
+    # array = numpy.genfromtxt(mfcc_csv_file, delimiter=";")
 
     print "define kmeans"
     kmeans = MiniBatchKMeans(n_clusters=cluster_num)
