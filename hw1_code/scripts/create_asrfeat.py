@@ -51,9 +51,6 @@ if __name__ == '__main__':
             if total != 0:
                 for i in xrange(len(vocab)):
                     hist[i] /= total
-            else:
-                for i in xrange(len(vocab)):
-                    hist[i] = 1.0 / len(vocab)
 
         # write the histogram into the file
         line = ";".join([str(x) for x in hist])
