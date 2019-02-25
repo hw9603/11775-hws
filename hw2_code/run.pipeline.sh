@@ -64,7 +64,7 @@ if [ "$PREPROCESSING" = true ] ; then
     python surf_feat_extraction.py -i list/all.video config.yaml
 
     # 3. TODO: Extract CNN features from keyframes of downsampled videos
-
+    python cnn_feat_extraction.py -i list/all.video config.yaml
 fi
 
 if [ "$FEATURE_REPRESENTATION" = true ] ; then

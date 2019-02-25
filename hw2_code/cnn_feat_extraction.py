@@ -8,9 +8,14 @@ import numpy as np
 import yaml
 import pickle
 import pdb
+import keras
+from keras.applications.resnet50 import ResNet50
+from keras.preprocessing import image
+from keras.applications.resnet50 import preprocess_input, decode_predictions
+from keras.models import Model
+from scipy.misc import imresize
 
-
-def get_surf_features_from_video(downsampled_video_filename, surf_feat_video_filename, keyframe_interval):
+def get_cnn_features_from_video(downsampled_video_filename, cnn_feat_video_filename, keyframe_interval):
     """
     Receives filename of downsampled video and of output path for features.
     Extracts features in the given keyframe_interval.
@@ -18,16 +23,18 @@ def get_surf_features_from_video(downsampled_video_filename, surf_feat_video_fil
     """
     keyframes = get_keyframes(downsampled_video_filename, keyframe_interval)
 
-    keypoints = []
+    cnn_features = None
     for image in keyframes:
-        kp, des = surf.detectAndCompute(image, None)
-        # x, y = kp.pt
-        if des is None:
-            continue
-        keypoints.append(des)
-
-    if len(keypoints) != 0:
-        np.save(surf_feat_video_filename, keypoints)
+        image = imresize(image, (224, 224))
+        x = np.array(image, dtype=np.float64)
+        x = np.expand_dims(x, axis=0)
+        x = preprocess_input(x)
+        features = model.predict(x)
+        if cnn_features is None:
+            cnn_features = features
+        else:
+            cnn_features = np.vstack((cnn_features, features))
+    np.save(cnn_feat_video_filename, cnn_features)
 
 
 def get_keyframes(downsampled_video_filename, keyframe_interval):
@@ -59,34 +66,34 @@ if __name__ == '__main__':
 
     # Get parameters from config file
     keyframe_interval = my_params.get('keyframe_interval')
-    hessian_threshold = my_params.get('hessian_threshold')
-    surf_features_folderpath = my_params.get('surf_features')
+    cnn_features_folderpath = my_params.get('cnn_features')
     downsampled_videos = my_params.get('downsampled_videos')
 
-    # TODO: Create SURF object
-    surf = cv2.SURF(hessianThreshold=hessian_threshold)
+    # TODO: define CNN object
+    base_model = ResNet50(weights='imagenet')
+    model = Model(inputs=base_model.input, outputs=base_model.layers[-1].output)
 
-    # Check if folder for SURF features exists
-    if not os.path.exists(surf_features_folderpath):
-        os.mkdir(surf_features_folderpath)
+    # Check if folder for CNN features exists
+    if not os.path.exists(cnn_features_folderpath):
+        os.mkdir(cnn_features_folderpath)
 
     # Loop over all videos (training, val, testing)
-    # TODO: get SURF features for all videos but only from keyframes
+    # TODO: get CNN features for all videos but only from keyframes
 
     fread = open(all_video_names, "r")
 
     for i, line in enumerate(fread.readlines()):
         video_name = line.replace('\n', '')
         downsampled_video_filename = os.path.join(downsampled_videos, video_name + '.ds.mp4')
-        surf_feat_video_filename = os.path.join(surf_features_folderpath, video_name + '.surf')
+        cnn_feat_video_filename = os.path.join(cnn_features_folderpath, video_name + '.cnn')
 
         print(str(i) + " " + video_name)
         if not os.path.isfile(downsampled_video_filename):
             continue
 
-        # Get SURF features for one video
+        # Get CNN features for one video
         try:
-            get_surf_features_from_video(downsampled_video_filename,
-                                     surf_feat_video_filename, keyframe_interval)
+            get_cnn_features_from_video(downsampled_video_filename,
+                                        cnn_feat_video_filename, keyframe_interval)
         except:
-            print("generate surf feature error for file {0}".format(video_name))
+            print("generate CNN feature error for file {0}".format(video_name))
