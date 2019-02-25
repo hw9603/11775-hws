@@ -8,13 +8,14 @@
 # This helps you to avoid rewriting the bash script whenever there are
 # intermediate steps that you don't want to repeat.
 
-# execute: bash run.pipeline.sh -p true -f true -m true -k true -y filepath
+# execute: bash run.pipeline.sh -d true -p true -f true -m true -k true -y filepath
 
 # Reading of all arguments:
-while getopts p:f:m:k:y: option		# p:f:m:k:y: is the optstring here
+while getopts d:p:f:m:k:y: option		# p:f:m:k:y: is the optstring here
 	do
 	case "${option}"
 	in
+	d) DOWNSAMPLING=${OPTARG};;        # boolean true or false
 	p) PREPROCESSING=${OPTARG};;       # boolean true or false
 	f) FEATURE_REPRESENTATION=${OPTARG};;  # boolean
 	m) MAP=${OPTARG};;                 # boolean
@@ -25,14 +26,14 @@ while getopts p:f:m:k:y: option		# p:f:m:k:y: is the optstring here
 
 export PATH=~/anaconda3/bin:$PATH
 
-if [ "$PREPROCESSING" = true ] ; then
+if [ "$DOWNSAMPLING" = true ] ; then
 
     echo "#####################################"
     echo "#         PREPROCESSING             #"
     echo "#####################################"
 
     # steps only needed once
-    video_path=~/video  # path to the directory containing all the videos.
+    video_path=/home/ubuntu/11775_videos/video  # path to the directory containing all the videos.
     mkdir -p list downsampled_videos surf cnn kmeans  # create folders to save features
     awk '{print $1}' ../hw1_code/list/train > list/train.video  # save only video names in one file (keeping first column)
     awk '{print $1}' ../hw1_code/list/val > list/val.video
@@ -43,18 +44,26 @@ if [ "$PREPROCESSING" = true ] ; then
     # 1. Downsample videos into shorter clips with lower frame rates.
     # TODO: Make this more efficient through multi-threading f.ex.
     start=`date +%s`
-    for line in $(cat "list/all.video"); do
-        ffmpeg -y -ss 0 -i $video_path/${line}.mp4 -strict experimental -t $downsampling_frame_len -r $downsampling_frame_rate downsampled_videos/$line.ds.mp4
-    done
+
+#    find . -name "*jpeg" | parallel -I% --max-args 1 convert % %.png
+
+    cat "list/all.video" | parallel --jobs 32 -I% --max-args 1 ffmpeg -y -ss 0 -i $video_path/%.mp4 -strict experimental -t $downsampling_frame_len -r $downsampling_frame_rate downsampled_videos/%.ds.mp4
+
+#    for line in $(cat "list/all.video"); do
+#        ffmpeg -y -ss 0 -i $video_path/${line}.mp4 -strict experimental -t $downsampling_frame_len -r $downsampling_frame_rate downsampled_videos/$line.ds.mp4
+#    done
     end=`date +%s`
     runtime=$((end-start))
     echo "Downsampling took: $runtime" #28417 sec around 8h without parallelization
+
+fi
+
+if [ "$PREPROCESSING" = true ] ; then
 
     # 2. TODO: Extract SURF features over keyframes of downsampled videos (0th, 5th, 10th frame, ...)
     python surf_feat_extraction.py -i list/all.video config.yaml
 
     # 3. TODO: Extract CNN features from keyframes of downsampled videos
-	
 
 fi
 

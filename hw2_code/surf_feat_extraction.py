@@ -8,16 +8,31 @@ import numpy as np
 import yaml
 import pickle
 import pdb
+import pandas as pd
 
 
 def get_surf_features_from_video(downsampled_video_filename, surf_feat_video_filename, keyframe_interval):
-    "Receives filename of downsampled video and of output path for features. Extracts features in the given keyframe_interval. Saves features in pickled file."
-    # TODO
-    pass
+    """
+    Receives filename of downsampled video and of output path for features.
+    Extracts features in the given keyframe_interval.
+    Saves features in pickled file.
+    """
+    keyframes = get_keyframes(downsampled_video_filename, keyframe_interval)
+
+    keypoints = []
+    for image in keyframes:
+        kp, des = surf.detectAndCompute(image, None)
+        # x, y = kp.pt
+        if des is None:
+            continue
+        keypoints.append(des)
+
+    if len(keypoints) != 0:
+        np.save(surf_feat_video_filename, keypoints)
 
 
 def get_keyframes(downsampled_video_filename, keyframe_interval):
-    "Generator function which returns the next keyframe."
+    """ Generator function which returns the next keyframe. """
 
     # Create video capture object
     video_cap = cv2.VideoCapture(downsampled_video_filename)
@@ -33,7 +48,7 @@ def get_keyframes(downsampled_video_filename, keyframe_interval):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage: {0} video_list config_file".format(sys.argv[0]))
         print("video_list -- file containing video names")
         print("config_file -- yaml filepath containing all parameters")
@@ -50,6 +65,7 @@ if __name__ == '__main__':
     downsampled_videos = my_params.get('downsampled_videos')
 
     # TODO: Create SURF object
+    surf = cv2.SURF(hessianThreshold=hessian_threshold)
 
     # Check if folder for SURF features exists
     if not os.path.exists(surf_features_folderpath):
@@ -59,14 +75,19 @@ if __name__ == '__main__':
     # TODO: get SURF features for all videos but only from keyframes
 
     fread = open(all_video_names, "r")
-    for line in fread.readlines():
+
+    for i, line in enumerate(fread.readlines()):
         video_name = line.replace('\n', '')
         downsampled_video_filename = os.path.join(downsampled_videos, video_name + '.ds.mp4')
         surf_feat_video_filename = os.path.join(surf_features_folderpath, video_name + '.surf')
 
+        print(str(i) + " " + video_name)
         if not os.path.isfile(downsampled_video_filename):
             continue
 
         # Get SURF features for one video
-        get_surf_features_from_video(downsampled_video_filename,
+        try:
+            get_surf_features_from_video(downsampled_video_filename,
                                      surf_feat_video_filename, keyframe_interval)
+        except:
+            print("generate surf feature error for file {0}".format(video_name))
