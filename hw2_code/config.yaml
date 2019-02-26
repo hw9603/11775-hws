@@ -3,12 +3,12 @@ all_video_names: list/all.video
 video_path: ~/11775_videos/video
 downsampled_videos: downsampled_videos
 surf_features: surf
-cnn_features: cnn
+cnn_features: cnn2
 
 # downsampling
 downsampling_frame_len: 60
 downsampling_frame_rate: 15
-keyframe_interval: 5
+keyframe_interval: 20
 
 # surf
 hessian_threshold: 400

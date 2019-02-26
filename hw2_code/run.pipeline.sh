@@ -67,14 +67,18 @@ if [ "$PREPROCESSING" = true ] ; then
     python cnn_feat_extraction.py -i list/all.video config.yaml
 fi
 
+surf_cluster_num = 400
+
 if [ "$FEATURE_REPRESENTATION" = true ] ; then
 
     echo "#####################################"
     echo "#  SURF FEATURE REPRESENTATION      #"
     echo "#####################################"
+    # 0. TODO: Randomly select 10% features
+    python select_frames.py list/train.video 0.1 select.surf
 
     # 1. TODO: Train kmeans to obtain clusters for SURF features
-
+    python train_surf_kmeans.py selected.surf.npy $surf_cluster_num surf.kmeans.${surf_cluster_num}.model
 
     # 2. TODO: Create kmeans representation for SURF features
 
