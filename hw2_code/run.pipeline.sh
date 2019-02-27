@@ -78,15 +78,20 @@ if [ "$FEATURE_REPRESENTATION" = true ] ; then
     python select_frames.py list/train.video 0.1 select.surf
 
     # 1. TODO: Train kmeans to obtain clusters for SURF features
-    python train_surf_kmeans.py selected.surf.npy $surf_cluster_num surf.kmeans.${surf_cluster_num}.model
+    python train_surf_kmeans.py select.surf.npy $surf_cluster_num surf.kmeans.${surf_cluster_num}.model
 
     # 2. TODO: Create kmeans representation for SURF features
+    python create_surf_kmeans.py surf.kmeans.${surf_cluster_num}.model $surf_cluster_num list/all.video
 
-	echo "#####################################"
+    # 3. TODO: Average/Max-pooling over BOW SURF feature and do normalization
+    mkdir -p pool_kmeans/
+    python surf_pooling.py pool_kmeans/ list/all.video
+
+    echo "#####################################"
     echo "#   CNN FEATURE REPRESENTATION      #"
     echo "#####################################"
 
-	# 1. TODO: Train kmeans to obtain clusters for CNN features
+    # 1. TODO: Train kmeans to obtain clusters for CNN features
 
 
     # 2. TODO: Create kmeans representation for CNN features
@@ -103,13 +108,38 @@ if [ "$MAP" = true ] ; then
     map_path=/home/ubuntu/tools/mAP
     export PATH=$map_path:$PATH
 
+    feat_dim_surf=400
+    mkdir -p surf_pred
+
     # 1. TODO: Train SVM with OVR using only videos in training set.
+    echo "Train SVM with OVR using only videos in training set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_kmeans/" $feat_dim_surf surf_pred/svm.$event.val.model 0;
+    done
 
     # 2. TODO: Test SVM with val set and calculate its MAP scores for own info.
+    echo "Test SVM with val set and calculate its MAP scores for own info."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py surf_pred/svm.$event.val.model "pool_kmeans/" $feat_dim_surf surf_pred/${event}_surf_val.lst 0;
+      #  ap list/${event}_val_label surf_pred/${event}_surf_val.lst
+      python evaluator.py list/${event}_val_label surf_pred/${event}_surf_val.lst
+    done
 
 	# 3. TODO: Train SVM with OVR using videos in training and validation set.
+	echo "Train SVM with OVR using videos in training and validation set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_kmeans/" $feat_dim_surf surf_pred/svm.$event.model 1;
+    done
 
 	# 4. TODO: Test SVM with test set saving scores for submission
+	echo "Test SVM with test set saving scores for submission"
+	for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py surf_pred/svm.$event.model "pool_kmeans/" $feat_dim_surf surf_pred/${event}_surf.lst 1;
+    done
 
     echo "#######################################"
     echo "# MED with CNN Features: MAP results  #"
@@ -134,13 +164,35 @@ if [ "$KAGGLE" = true ] ; then
     echo "##########################################"
 
     # 1. TODO: Train SVM with OVR using only videos in training set.
+    echo "Train SVM with OVR using only videos in training set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_kmeans/" $feat_dim_surf surf_pred/svm.$event.val.model 0;
+    done
 
     # 2. TODO: Test SVM with val set and calculate its MAP scores for own info.
+    echo "Test SVM with val set and calculate its MAP scores for own info."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py surf_pred/svm.$event.val.model "pool_kmeans/" $feat_dim_surf surf_pred/${event}_surf_val.lst 0;
+      #  ap list/${event}_val_label surf_pred/${event}_surf_val.lst
+      python evaluator.py list/${event}_val_label surf_pred/${event}_surf_val.lst
+    done
 
 	# 3. TODO: Train SVM with OVR using videos in training and validation set.
+	echo "Train SVM with OVR using videos in training and validation set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_kmeans/" $feat_dim_surf surf_pred/svm.$event.model 1;
+    done
 
     # 4. TODO: Test SVM with test set saving scores for submission
-
+    echo "Test SVM with test set saving scores for submission"
+	for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py surf_pred/svm.$event.model "pool_kmeans/" $feat_dim_surf surf_pred/${event}_surf.lst 1;
+    done
+    python generate_class.py surf_pred/ surf
 
     echo "##########################################"
     echo "# MED with CNN Features: KAGGLE results  #"

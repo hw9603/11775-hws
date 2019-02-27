@@ -5,7 +5,6 @@ import os
 from sklearn.cluster.k_means_ import MiniBatchKMeans, KMeans
 import cPickle
 import sys
-import pandas
 
 # Performs K-means clustering and save the model to a local file
 
