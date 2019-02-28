@@ -55,6 +55,8 @@ if __name__ == '__main__':
     # generate the input matrix
     X = numpy.zeros([len(videos), feat_dim])
     for i, video in enumerate(videos):
+        if not os.path.exists(feat_dir + video + ".npy"):
+            continue
         feature = numpy.load(feat_dir + video + ".npy")
         # the feature shape should be the same as feat_dim
         if feature.shape[0] == feat_dim:

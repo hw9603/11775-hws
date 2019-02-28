@@ -95,6 +95,8 @@ if [ "$FEATURE_REPRESENTATION" = true ] ; then
 
 
     # 2. TODO: Create kmeans representation for CNN features
+    mkdir -p pool_cnn/
+    python cnn_pooling.py pool_cnn/ list/all.video
 
 fi
 
@@ -145,23 +147,53 @@ if [ "$MAP" = true ] ; then
     echo "# MED with CNN Features: MAP results  #"
     echo "#######################################"
 
-
+    feat_dim_cnn=1000
+    mkdir -p cnn_pred
     # 1. TODO: Train SVM with OVR using only videos in training set.
+    echo "Train SVM with OVR using only videos in training set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_cnn/" $feat_dim_cnn cnn_pred/svm.$event.val.model 0;
+    done
 
     # 2. TODO: Test SVM with val set and calculate its MAP scores for own info.
+    echo "Test SVM with val set and calculate its MAP scores for own info."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py cnn_pred/svm.$event.val.model "pool_cnn/" $feat_dim_cnn cnn_pred/${event}_cnn_val.lst 0;
+      #  ap list/${event}_val_label surf_pred/${event}_surf_val.lst
+      python evaluator.py list/${event}_val_label cnn_pred/${event}_cnn_val.lst
+    done
 
 	# 3. TODO: Train SVM with OVR using videos in training and validation set.
+    echo "Train SVM with OVR using videos in training and validation set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_cnn/" $feat_dim_cnn cnn_pred/svm.$event.model 1;
+    done
 
 	# 4. TODO: Test SVM with test set saving scores for submission
+	echo "Test SVM with test set saving scores for submission"
+	for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py cnn_pred/svm.$event.model "pool_cnn/" $feat_dim_cnn cnn_pred/${event}_cnn.lst 1;
+    done
 
 fi
 
 
 if [ "$KAGGLE" = true ] ; then
 
+    # Paths to different tools;
+    map_path=/home/ubuntu/tools/mAP
+    export PATH=$map_path:$PATH
+
     echo "##########################################"
     echo "# MED with SURF Features: KAGGLE results #"
     echo "##########################################"
+
+    feat_dim_surf=400
+    mkdir -p surf_pred
 
     # 1. TODO: Train SVM with OVR using only videos in training set.
     echo "Train SVM with OVR using only videos in training set."
@@ -197,13 +229,38 @@ if [ "$KAGGLE" = true ] ; then
     echo "##########################################"
     echo "# MED with CNN Features: KAGGLE results  #"
     echo "##########################################"
+    feat_dim_cnn=1000
+    mkdir -p cnn_pred
 
     # 1. TODO: Train SVM with OVR using only videos in training set.
+    echo "Train SVM with OVR using only videos in training set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_cnn/" $feat_dim_cnn cnn_pred/svm.$event.val.model 0;
+    done
 
     # 2. TODO: Test SVM with val set and calculate its MAP scores for own info.
+    echo "Test SVM with val set and calculate its MAP scores for own info."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py cnn_pred/svm.$event.val.model "pool_cnn/" $feat_dim_cnn cnn_pred/${event}_cnn_val.lst 0;
+      #  ap list/${event}_val_label surf_pred/${event}_surf_val.lst
+      python evaluator.py list/${event}_val_label cnn_pred/${event}_cnn_val.lst
+    done
 
 	# 3. TODO: Train SVM with OVR using videos in training and validation set.
+    echo "Train SVM with OVR using videos in training and validation set."
+    for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python train_svm.py $event "pool_cnn/" $feat_dim_surf cnn_pred/svm.$event.model 1;
+    done
 
 	# 4. TODO: Test SVM with test set saving scores for submission
+    echo "Test SVM with test set saving scores for submission"
+	for event in P001 P002 P003; do
+      echo "=========  Event $event  ========="
+      python test_svm.py cnn_pred/svm.$event.model "pool_cnn/" $feat_dim_cnn cnn_pred/${event}_cnn.lst 1;
+    done
+    python generate_class.py cnn_pred/ cnn
 
 fi
