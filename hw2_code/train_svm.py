@@ -4,6 +4,9 @@ import numpy
 import os
 from sklearn.svm.classes import SVC
 from sklearn.metrics.pairwise import chi2_kernel
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+
 import cPickle
 import sys
 
@@ -37,6 +40,8 @@ if __name__ == '__main__':
     y = []
     for line in fread.readlines():
         file_name, event = line.replace('\n', '').split()
+        if event == "NULL":
+            continue
         videos.append(file_name)
         # 1 if equal to the event_name, 0 otherwise
         y.append(int(event == event_name))
@@ -48,6 +53,9 @@ if __name__ == '__main__':
         fread = open(val_file_list, "r")
         for line in fread.readlines():
             file_name, event = line.replace('\n', '').split()
+            if event == "NULL":
+                print "ignoring null..."
+                continue
             videos.append(file_name)
             y.append(int(event == event_name))
         fread.close()
@@ -64,6 +72,12 @@ if __name__ == '__main__':
 
     clf = SVC(decision_function_shape='ovr', kernel='precomputed', gamma='scale', C=1)
     clf.fit(chi2_kernel(X), y)
+
+    # clf = SVC(decision_function_shape='ovr', kernel='rbf', gamma='scale', C=1)
+    # clf.fit(X, y)
+
+    # clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=10), n_estimators=100, learning_rate=0.1)
+    # clf.fit(X, y)
     # dump the model to the output file
     cPickle.dump(clf, fwrite, -1)
 

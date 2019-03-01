@@ -67,7 +67,8 @@ if [ "$PREPROCESSING" = true ] ; then
     python cnn_feat_extraction.py -i list/all.video config.yaml
 fi
 
-surf_cluster_num = 400
+surf_cluster_num=400
+cnn_cluster_num=1000
 
 if [ "$FEATURE_REPRESENTATION" = true ] ; then
 
@@ -90,11 +91,17 @@ if [ "$FEATURE_REPRESENTATION" = true ] ; then
     echo "#####################################"
     echo "#   CNN FEATURE REPRESENTATION      #"
     echo "#####################################"
+    # 0. TODO: concatenate all features
+    python select_cnn_frames.py list/train.video 1.0 select.cnn
 
     # 1. TODO: Train kmeans to obtain clusters for CNN features
-
+    python train_cnn_kmeans.py select.cnn.npy $cnn_cluster_num cnn.kmeans.${cnn_cluster_num}.model
 
     # 2. TODO: Create kmeans representation for CNN features
+    mkdir -p cnn_kmeans/
+    python create_cnn_kmeans.py cnn.kmeans.${cnn_cluster_num}.model $cnn_cluster_num list/all.video
+
+    # TODO: Alternatively, do the following instead of 0 & 1 & 2:
     mkdir -p pool_cnn/
     python cnn_pooling.py pool_cnn/ list/all.video
 
@@ -154,6 +161,7 @@ if [ "$MAP" = true ] ; then
     for event in P001 P002 P003; do
       echo "=========  Event $event  ========="
       python train_svm.py $event "pool_cnn/" $feat_dim_cnn cnn_pred/svm.$event.val.model 0;
+#        python train_svm.py $event "cnn_kmeans/" $feat_dim_cnn cnn_pred/svm.$event.val.model 0;
     done
 
     # 2. TODO: Test SVM with val set and calculate its MAP scores for own info.
@@ -161,6 +169,7 @@ if [ "$MAP" = true ] ; then
     for event in P001 P002 P003; do
       echo "=========  Event $event  ========="
       python test_svm.py cnn_pred/svm.$event.val.model "pool_cnn/" $feat_dim_cnn cnn_pred/${event}_cnn_val.lst 0;
+#      python test_svm.py cnn_pred/svm.$event.val.model "cnn_kmeans/" $feat_dim_cnn cnn_pred/${event}_cnn_val.lst 0;
       #  ap list/${event}_val_label surf_pred/${event}_surf_val.lst
       python evaluator.py list/${event}_val_label cnn_pred/${event}_cnn_val.lst
     done
@@ -252,7 +261,7 @@ if [ "$KAGGLE" = true ] ; then
     echo "Train SVM with OVR using videos in training and validation set."
     for event in P001 P002 P003; do
       echo "=========  Event $event  ========="
-      python train_svm.py $event "pool_cnn/" $feat_dim_surf cnn_pred/svm.$event.model 1;
+      python train_svm.py $event "pool_cnn/" $feat_dim_cnn cnn_pred/svm.$event.model 1;
     done
 
 	# 4. TODO: Test SVM with test set saving scores for submission

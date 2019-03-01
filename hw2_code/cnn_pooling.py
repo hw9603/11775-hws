@@ -32,7 +32,9 @@ if __name__ == '__main__':
                 normed_feat = numpy.full(1000, 1/1000)
             else:
                 avg_pooled_feat = numpy.mean(cnn_feat, axis=0)
-                normed_feat = avg_pooled_feat / numpy.linalg.norm(avg_pooled_feat)
+                # normed_feat = avg_pooled_feat / numpy.linalg.norm(avg_pooled_feat)
+                normed_feat = avg_pooled_feat / (numpy.sum(avg_pooled_feat) + 0.0)
+                # normed_feat = avg_pooled_feat
             numpy.save(fwrite_path, normed_feat)
 
     print "Feature pooling completed successfully!"

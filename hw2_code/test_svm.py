@@ -44,6 +44,8 @@ if __name__ == '__main__':
     train_file = open(train_file_list, "r")
     for line in train_file.readlines():
         file_name, event = line.replace('\n', '').split()
+        if event == "NULL":
+            continue
         train_videos.append(file_name)
     train_file.close()
 
@@ -52,6 +54,8 @@ if __name__ == '__main__':
         train_file = open(val_file_list, "r")
         for line in train_file.readlines():
             file_name, event = line.replace('\n', '').split()
+            if event == "NULL":
+                continue
             train_videos.append(file_name)
         train_file.close()
 
@@ -68,6 +72,8 @@ if __name__ == '__main__':
         file_name = line.replace('\n', '')
         feature = numpy.load(feat_dir + file_name + ".npy")
         scores = clf.decision_function(chi2_kernel(feature.reshape(1, -1), train_feat))
+        # scores = clf.decision_function(feature.reshape(1, -1))
+        # scores = clf.predict_proba(feature.reshape(1, -1))[:, 1]
         fwrite.write(str(scores[0]) + "\n")
     fwrite.close()
 
