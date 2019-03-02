@@ -29,6 +29,7 @@ if __name__ == '__main__':
             kmeans_feat = numpy.load(kmeans_path)
             avg_pooled_feat = numpy.mean(kmeans_feat, axis=0)
             normed_feat = avg_pooled_feat / numpy.linalg.norm(avg_pooled_feat)
+            # normed_feat = avg_pooled_feat
             numpy.save(fwrite_path, normed_feat)
 
     print "Feature pooling completed successfully!"

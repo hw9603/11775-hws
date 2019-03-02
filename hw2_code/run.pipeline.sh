@@ -11,7 +11,7 @@
 # execute: bash run.pipeline.sh -d true -p true -f true -m true -k true -y filepath
 
 # Reading of all arguments:
-while getopts d:p:f:m:k:y: option		# p:f:m:k:y: is the optstring here
+while getopts d:p:f:m:k:y: option		# d:p:f:m:k:y: is the optstring here
 	do
 	case "${option}"
 	in
@@ -29,7 +29,7 @@ export PATH=~/anaconda3/bin:$PATH
 if [ "$DOWNSAMPLING" = true ] ; then
 
     echo "#####################################"
-    echo "#         PREPROCESSING             #"
+    echo "#          DOWNSAMPLING             #"
     echo "#####################################"
 
     # steps only needed once
@@ -47,7 +47,7 @@ if [ "$DOWNSAMPLING" = true ] ; then
 
 #    find . -name "*jpeg" | parallel -I% --max-args 1 convert % %.png
 
-    cat "list/all.video" | parallel --jobs 32 -I% --max-args 1 ffmpeg -y -ss 0 -i $video_path/%.mp4 -strict experimental -t $downsampling_frame_len -r $downsampling_frame_rate downsampled_videos/%.ds.mp4
+    cat "list/all.video" | parallel --jobs 2 -I% --max-args 1 ffmpeg -y -ss 0 -i $video_path/%.mp4 -strict experimental -t $downsampling_frame_len -r $downsampling_frame_rate downsampled_videos/%.ds.mp4
 
 #    for line in $(cat "list/all.video"); do
 #        ffmpeg -y -ss 0 -i $video_path/${line}.mp4 -strict experimental -t $downsampling_frame_len -r $downsampling_frame_rate downsampled_videos/$line.ds.mp4
@@ -59,6 +59,10 @@ if [ "$DOWNSAMPLING" = true ] ; then
 fi
 
 if [ "$PREPROCESSING" = true ] ; then
+
+    echo "#####################################"
+    echo "#          PREPROCESSING            #"
+    echo "#####################################"
 
     # 2. TODO: Extract SURF features over keyframes of downsampled videos (0th, 5th, 10th frame, ...)
     python surf_feat_extraction.py -i list/all.video config.yaml
@@ -92,14 +96,14 @@ if [ "$FEATURE_REPRESENTATION" = true ] ; then
     echo "#   CNN FEATURE REPRESENTATION      #"
     echo "#####################################"
     # 0. TODO: concatenate all features
-    python select_cnn_frames.py list/train.video 1.0 select.cnn
+#    python select_cnn_frames.py list/train.video 1.0 select.cnn
 
     # 1. TODO: Train kmeans to obtain clusters for CNN features
-    python train_cnn_kmeans.py select.cnn.npy $cnn_cluster_num cnn.kmeans.${cnn_cluster_num}.model
+#    python train_cnn_kmeans.py select.cnn.npy $cnn_cluster_num cnn.kmeans.${cnn_cluster_num}.model
 
     # 2. TODO: Create kmeans representation for CNN features
-    mkdir -p cnn_kmeans/
-    python create_cnn_kmeans.py cnn.kmeans.${cnn_cluster_num}.model $cnn_cluster_num list/all.video
+#    mkdir -p cnn_kmeans/
+#    python create_cnn_kmeans.py cnn.kmeans.${cnn_cluster_num}.model $cnn_cluster_num list/all.video
 
     # TODO: Alternatively, do the following instead of 0 & 1 & 2:
     mkdir -p pool_cnn/
