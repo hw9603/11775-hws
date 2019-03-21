@@ -5,6 +5,7 @@ import os
 from sklearn.svm.classes import SVC
 from sklearn.metrics.pairwise import chi2_kernel
 from sklearn.metrics.pairwise import laplacian_kernel
+from sklearn.metrics.pairwise import additive_chi2_kernel
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 
@@ -69,12 +70,12 @@ if __name__ == '__main__':
         if feature.shape[0] == feat_dim:
             X[i, :] = feature
 
-    if event_name != "NULL":
-        clf = SVC(decision_function_shape='ovr', kernel='precomputed', gamma='scale', C=1, class_weight='balanced')
-    else:
-        clf = SVC(decision_function_shape='ovr', kernel='precomputed', gamma='scale', C=1)
+    clf = SVC(decision_function_shape='ovr', kernel='precomputed', gamma='scale', C=1, class_weight='balanced')
     # clf.fit(chi2_kernel(X), y)
-    clf.fit(laplacian_kernel(X), y)
+    # if event_name == "P002":
+    clf.fit(additive_chi2_kernel(X), y)
+    # else:
+    #     clf.fit(laplacian_kernel(X), y)
 
     # clf = SVC(decision_function_shape='ovr', kernel='rbf', gamma='scale', C=1)
     # clf.fit(X, y)

@@ -11,7 +11,7 @@ import sys
 # Apply the SVM model to the testing videos; Output the score for each video
 
 if __name__ == '__main__':
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 10:
         print(len(sys.argv))
         print("Usage: {0} model_file feat_dir feat_dim output_file".format(sys.argv[0]))
         print("model_file -- path of the trained svm file")
@@ -20,6 +20,9 @@ if __name__ == '__main__':
         print("output_file -- path to save the prediction score")
         print("include_val -- whether to include validation file in training")
         print("feat_extension -- the extension of the feature files")
+        print("include_map -- include mAP generation")
+        print("feat_name --  the name of the feature")
+        print("pred_path --  the path of the prediction file")
         exit(1)
 
     model_file = sys.argv[1]
@@ -28,6 +31,9 @@ if __name__ == '__main__':
     output_file = sys.argv[4]
     predict_test = bool(int(sys.argv[5]))
     feat_extension = sys.argv[6]
+    include_map = bool(int(sys.argv[7]))
+    feat_name = sys.argv[8]
+    pred_path = sys.argv[9]
 
     clf = cPickle.load(open(model_file, "rb"))
     # validation dataset
@@ -38,7 +44,6 @@ if __name__ == '__main__':
         print "predict on val.video"
         file_list = "list/val.video"
     fread = open(file_list, "r")
-    fwrite = open(output_file, "wb")
 
     """ for chi-squared kernel """
     train_file_list = "list/train"
@@ -68,7 +73,20 @@ if __name__ == '__main__':
     """ end """
 
     videos = []
+    fwrite = open(output_file, "wb")
     fwrite.write("VideoID,Label\n")
+    if include_map:
+        extension = "_" + feat_name
+        if predict_test:
+            extension += ".lst"
+        else:
+            extension += "_val.lst"
+        NULL_file = open(pred_path + "NULL" + extension, "wb")
+        P001_file = open(pred_path + "P001" + extension, "wb")
+        P002_file = open(pred_path + "P002" + extension, "wb")
+        P003_file = open(pred_path + "P003" + extension, "wb")
+        files = [NULL_file, P001_file, P002_file, P003_file]
+
     for line in fread.readlines():
         file_name = line.replace('\n', '')
         feature = numpy.load(feat_dir + file_name + feat_extension)
@@ -77,6 +95,12 @@ if __name__ == '__main__':
         # scores = clf.decision_function(feature.reshape(1, -1))
         # scores = clf.predict_proba(feature.reshape(1, -1))[:, 1]
         fwrite.write(file_name + "," + str(numpy.argmax(scores[0])) + "\n")
+        if include_map:
+            for i, file in enumerate(files):
+                file.write(str(scores[0][i]) + "\n")
     fwrite.close()
+    if include_map:
+        for file in files:
+            file.close()
 
     print('SVM tested successfully!')

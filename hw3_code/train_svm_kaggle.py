@@ -70,8 +70,8 @@ if __name__ == '__main__':
             X[i, :] = feature
 
     clf = SVC(decision_function_shape='ovr', kernel='precomputed', gamma='scale', C=1, class_weight='balanced')
-    clf.fit(chi2_kernel(X), y)
-    # clf.fit(laplacian_kernel(X), y)
+    # clf.fit(chi2_kernel(X), y)
+    clf.fit(laplacian_kernel(X), y)
 
     # clf = SVC(decision_function_shape='ovr', kernel='rbf', gamma='scale', C=1)
     # clf.fit(X, y)

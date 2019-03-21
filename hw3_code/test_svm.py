@@ -5,13 +5,14 @@ import os
 from sklearn.svm.classes import SVC
 from sklearn.metrics.pairwise import chi2_kernel
 from sklearn.metrics.pairwise import laplacian_kernel
+from sklearn.metrics.pairwise import additive_chi2_kernel
 import cPickle
 import sys
 
 # Apply the SVM model to the testing videos; Output the score for each video
 
 if __name__ == '__main__':
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 8:
         print(len(sys.argv))
         print("Usage: {0} model_file feat_dir feat_dim output_file".format(sys.argv[0]))
         print("model_file -- path of the trained svm file")
@@ -28,6 +29,7 @@ if __name__ == '__main__':
     output_file = sys.argv[4]
     predict_test = bool(int(sys.argv[5]))
     feat_extension = sys.argv[6]
+    event_name = sys.argv[7]
 
     clf = cPickle.load(open(model_file, "rb"))
     # validation dataset
@@ -71,8 +73,12 @@ if __name__ == '__main__':
     for line in fread.readlines():
         file_name = line.replace('\n', '')
         feature = numpy.load(feat_dir + file_name + feat_extension)
+        # if event_name == "P002":
+        scores = clf.decision_function(additive_chi2_kernel(feature.reshape(1, -1), train_feat))
+        # else:
+        #     scores = clf.decision_function(laplacian_kernel(feature.reshape(1, -1), train_feat))
         # scores = clf.decision_function(chi2_kernel(feature.reshape(1, -1), train_feat))
-        scores = clf.decision_function(laplacian_kernel(feature.reshape(1, -1), train_feat))
+        # scores = clf.decision_function(laplacian_kernel(feature.reshape(1, -1), train_feat))
         # scores = clf.decision_function(feature.reshape(1, -1))
         # scores = clf.predict_proba(feature.reshape(1, -1))[:, 1]
         fwrite.write(str(scores[0]) + "\n")
